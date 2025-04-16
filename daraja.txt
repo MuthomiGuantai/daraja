@@ -1,0 +1,47 @@
+private String getMpesaName(String refNumber) {
+        // TODO Auto-generated method stub
+
+
+        String refNumber = "11APR033";
+        String customerName = "";
+
+        try {
+            //   Unirest.config().verifySsl(false);
+
+            HttpResponse<String> mpesaResponse;
+
+            mpesaResponse = Unirest.post("http://192.168.205.126:1880/bcwsgateway/services/BCMpesaRefService?wsdl")
+                    .header("Content-Type", "application/xml")
+                    .body("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ser=\"http://www.imbank.com/service\">\r\n "
+                            + "  <soapenv:Header/>\r\n  <soapenv:Body>\r\n    <ser:BCMpesaRefNameRequest>\r\n   "
+                            + "  <Mpesa_Ref>" + refNumber + "</Mpesa_Ref>\r\n  "
+                            + "   </ser:BCMpesaRefNameRequest>\r\n "
+                            + " </soapenv:Body>\r\n\r\n</soapenv:Envelope>")
+                    .asString();
+
+            logger.info("mpesa body ===> " + mpesaResponse.getBody());
+
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(mpesaResponse.getRawBody());
+            doc.getDocumentElement().normalize();
+
+            System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
+
+            customerName = doc.getElementsByTagName("Cust_Name").item(0).getTextContent();
+
+            logger.info("customer name ===> " + customerName);
+
+        } catch (UnirestException ex) {
+            java.util.logging.Logger.getLogger(SendRequest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParserConfigurationException ex) {
+            java.util.logging.Logger.getLogger(SendRequest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SAXException ex) {
+            java.util.logging.Logger.getLogger(SendRequest.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(SendRequest.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return customerName;
+    }
+ 
