@@ -49,11 +49,19 @@ public class TransactionServiceImpl implements TransactionService {
         log.info("URL: " + url);
 
         try {
-            // First get MPESA name if reference is available
-            if (transactionBody.getTransactionref() != null && !transactionBody.getTransactionref().isEmpty()) {
-                String customerName = getMpesaName(transactionBody.getTransactionref());
-                log.info("Retrieved MPESA customer name: {}", customerName);
-                // You can use the customer name as needed
+           if (transactionBody.getTransactionref() != null && !transactionBody.getTransactionref().trim().isEmpty()) {
+                try {
+                    String customerName = getMpesaName(transactionBody.getTransactionref());
+                    if (customerName != null && !customerName.trim().isEmpty()) {
+                        log.info("Retrieved MPESA customer name: {}", customerName);
+                    } else {
+                        log.warn("Empty customer name received for MPESA reference: {}",
+                                transactionBody.getTransactionref());
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to retrieve MPESA name for reference: {}",
+                            transactionBody.getTransactionref(), e);
+                }
             }
 
             HttpHeaders headers = new HttpHeaders();
